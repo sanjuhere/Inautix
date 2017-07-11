@@ -1,0 +1,12 @@
+//TSORKUM1 JOB 2121000,RAKESH,CLASS=A,MSGCLASS=X,NOTIFY=&SYSUID,       
+//           MSGLEVEL=(1,1)                                            
+//STEP1    EXEC PGM=SORT                                               
+//SORTIN   DD   DSN=TSORKUM.TRNG.PS1,DISP=SHR                          
+//SORTOUT  DD   DSN=TSORKUM.TRNG.PS2,DISP=(NEW,CATLG,DELETE),          
+//             DCB=(LRECL=80,BLKSIZE=800,RECFM=FB),                    
+//             SPACE=(TRK,(10,5,0),RLSE),STORCLAS=CTSDASD              
+//SYSOUT   DD   SYSOUT=*                                               
+//SYSIN    DD   *                                                      
+    SORT FIELDS=COPY                                                   
+    INCLUDE COND=(34,6,CH,GT,C'15000 ',OR,23,10,CH,EQ,C'CHENNAI   ')   
+/*                                                                     

@@ -1,0 +1,4 @@
+ //TSOAVARA JOB 12345,TSOAVAR,CLASS=A,MSGCLASS=X,NOTIFY=&SYSUID,         
+ //         MSGLEVEL=(1,1)                                               
+ //PROC1 JCLLIB ORDER=TSOAVAR.TRAINING.PROCLIB                           
+ //S1       EXEC PROC=PROC1                                              

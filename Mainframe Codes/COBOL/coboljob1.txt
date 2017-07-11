@@ -1,0 +1,5 @@
+//TSORKUMC JOB 2121000,RAKESH,CLASS=A,MSGCLASS=X,NOTIFY=&SYSUID,  
+//         MSGLEVEL=(1,1)                                         
+//R010    EXEC PGM=TRN01497                                       
+//STEPLIB DD DSN=ENDEVOR.DEV1.LOAD,DISP=SHR                       
+//SYSOUT  DD SYSOUT=*                                             

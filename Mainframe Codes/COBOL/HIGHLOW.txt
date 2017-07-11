@@ -1,0 +1,48 @@
+IDENTIFICATION DIVISION.                                               
+PROGRAM-ID. TRN698B.                                                   
+ENVIRONMENT DIVISION.                                                  
+DATA DIVISION.                                                         
+WORKING-STORAGE SECTION.                                               
+01 WS-NUM1.                                                            
+      05 NUM PIC 99 OCCURS 5 TIMES.                                    
+PROCEDURE DIVISION.                                                    
+1000-MAIN-PARA.                                                        
+     ACCEPT NUM(1).                                                    
+     ACCEPT NUM(2).                                                    
+     ACCEPT NUM(3).                                                    
+     ACCEPT NUM(4).                                                    
+     ACCEPT NUM(5).                                                    
+     IF NUM(1)>NUM(2) AND NUM(1)>NUM(3) AND NUM(1)>NUM(4)              
+     AND NUM(1)>NUM(5) THEN                                            
+     DISPLAY NUM(1),'IS HIGH'                                          
+     ELSE IF NUM(2)>NUM(3) AND NUM(2)>NUM(4) AND                       
+     ACCEPT NUM(1).                                                  
+     ACCEPT NUM(2).                                                  
+     ACCEPT NUM(3).                                                  
+     ACCEPT NUM(4).                                                  
+     ACCEPT NUM(5).                                                  
+     IF NUM(1)>NUM(2) AND NUM(1)>NUM(3) AND NUM(1)>NUM(4)            
+     AND NUM(1)>NUM(5) THEN                                          
+     DISPLAY NUM(1),'IS HIGH'                                        
+     ELSE IF NUM(2)>NUM(3) AND NUM(2)>NUM(4) AND                     
+     NUM(2)>NUM(5) THEN                                              
+     DISPLAY NUM(2),'IS HIGH'                                        
+     ELSE IF NUM(3)>NUM(4) AND NUM(3)>NUM(5) THEN                    
+     DISPLAY NUM(3),'IS HIGH'                                        
+     ELSE IF NUM(4)>NUM(5) THEN                                      
+     DISPLAY NUM(4),'IS HIGH'                                        
+     ELSE                                                            
+     DISPLAY NUM(5),'IS HIGH'                                        
+     END-IF                                                          
+     END-IF                                                                DISPLAY NUM(2),'IS HIGH'                                        
+      ELSE IF NUM(3)>NUM(4) AND NUM(3)>NUM(5) THEN                    
+      DISPLAY NUM(3),'IS HIGH'                                        
+      ELSE IF NUM(4)>NUM(5) THEN                                      
+      DISPLAY NUM(4),'IS HIGH'                                        
+      ELSE                                                            
+      DISPLAY NUM(5),'IS HIGH'                                        
+      END-IF                                                          
+      END-IF                                                          
+      END-IF                                                          
+      END-IF.                                                         
+      STOP RUN.                                                       

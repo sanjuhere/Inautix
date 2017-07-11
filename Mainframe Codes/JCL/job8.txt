@@ -1,0 +1,10 @@
+//TSORKUM1 JOB 2121000,RAKESH,CLASS=A,MSGCLASS=X,NOTIFY=&SYSUID,      
+//          MSGLEVEL=(1,1)                                            
+//S1      EXEC PGM=SORT                                               
+//SORTIN  DD  DSN=TSORKUM.TRNG.PS1,DISP=SHR                           
+//SORTOUT DD  SYSOUT=*                                                
+//SYSOUT  DD  SYSOUT=*                                                
+//SYSIN DD *                                                          
+  SORT FIELDS=                                                        
+  SUM FIELDS=(34,6,ZD)                                                
+/*                                                                    

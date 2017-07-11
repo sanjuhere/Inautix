@@ -1,0 +1,7 @@
+ //TSORKUM1 JOB 2121000,RAKESH,CLASS=A,MSGCLASS=X,NOTIFY=&SYSUID,        
+ //         MSGLEVEL=(1,1)                                               
+ //MYPROC  JCLLIB ORDER=TSORKUM.TRNG.PROCPDS                             
+ //STEP1  EXEC PROC=CPROC1,DNAME=TSORKUM.TRNG.PS1                        
+ //S1.SORTOUT DD DSN=TSORKUM.TRNG.PS4,DISP=(NEW,CATLG,DELETE),           
+ //        DCB=(LRECL=80,BLKSIZE=800,RECFM=FB),                          
+ //        SPACE=(TRK,(10,5,0),RLSE),STORCLAS=CTSDASD                    

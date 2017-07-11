@@ -1,0 +1,30 @@
+ //TSOAVARA    JOB 12345,TSOAVAR,CLASS=A,MSGCLASS=X,NOTIFY=&SYSUID,      
+ //            MSGLEVEL=(1,1)                                            
+ //S1          EXEC PGM=IDCAMS                                           
+ //SYSOUT      DD SYSOUT=*                                               
+ //SYSPRINT    DD SYSOUT=*                                               
+ //SYSIN       DD *                                                      
+               DEFINE CLUSTER (NAME(TSOAVAR.TRAINING.KSDS) -             
+               TRACKS(10 5) -                                            
+               CONTROLINTERVALSIZE(4096) -                               
+               STORAGECLASS(CTSDASD) -                                   
+               KEYS(5 1) -                                               
+               RECORDSIZE(80 80) -                                       
+               INDEXED -                                                 
+               ) -                                                       
+               DATA (NAME(TSOAVAR.TRAINING.KSDS.DATA) -                  
+               ) -                                                       
+               INDEX (NAME(TSOAVAR.TRAINING.KSDS.INDEX) -                
+               )                                                                      
+	       STORAGECLASS(CTSDASD) -                            
+              KEYS(5 1) -                                        
+              RECORDSIZE(80 80) -                                
+              INDEXED -                                          
+              ) -                                                
+              DATA (NAME(TSOAVAR.TRAINING.KSDS.DATA) -           
+              ) -                                                
+              INDEX (NAME(TSOAVAR.TRAINING.KSDS.INDEX) -         
+              )                                                  
+/*                                                               
+                )                                                
+/*                                                               

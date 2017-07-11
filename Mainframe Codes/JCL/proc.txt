@@ -1,0 +1,31 @@
+//PROC1  PROC                                                           
+//S1     EXEC PGM=SORT                                                  
+//SYSOUT DD SYSOUT=*                                                    
+//SORTIN DD DSN=TSOAVAR.TRAINING.EMPFILE,DISP=SHR                       
+//FILE1   DD DSN=TSOAVAR.TRAINING.PROC1,DISP=(NEW,CATLG,DELETE),        
+//       DCB=(RECFM=FB,LRECL=80,BLKSIZE=800),                           
+//       SPACE=(TRK,(5,1,0)),                                           
+//       STORCLAS=CTSDASD                                               
+//FILE2   DD DSN=TSOAVAR.TRAINING.PROC2,DISP=(NEW,CATLG,DELETE),        
+//        DCB=(RECFM=FB,LRECL=80,BLKSIZE=800),                          
+//        SPACE=(TRK,(5,1,0)),                                          
+//        STORCLAS=CTSDASD                                              
+//FILE3   DD DSN=TSOAVAR.TRAINING.PROC3,DISP=(NEW,CATLG,DELETE),        
+//        DCB=(RECFM=FB,LRECL=80,BLKSIZE=800),                          
+//       STORCLAS=CTSDASD,                                              
+//       SPACE=(TRK,(5,1,0))                                            
+//SYSIN   DD *                                                          
+          SORT FIELDS=COPY                                              
+ //        DCB=(RECFM=FB,LRECL=80,BLKSIZE=800),                       
+ //        SPACE=(TRK,(5,1,0)),                                       
+ //        STORCLAS=CTSDASD                                           
+ //FILE3   DD DSN=TSOAVAR.TRAINING.PROC3,DISP=(NEW,CATLG,DELETE),     
+ //        DCB=(RECFM=FB,LRECL=80,BLKSIZE=800),                       
+ //       STORCLAS=CTSDASD,                                           
+ //       SPACE=(TRK,(5,1,0))                                         
+ //SYSIN   DD *                                                       
+           SORT FIELDS=COPY                                           
+           OUTFIL FNAMES=FILE1,INCLUDE=(28,5,CH,EQ,C'D0001')          
+           OUTFIL FNAMES=FILE2,INCLUDE=(28,5,CH,EQ,C'D0002')          
+           OUTFIL FNAMES=FILE3,SAVE                                   
+ /*                                                                   

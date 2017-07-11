@@ -1,0 +1,14 @@
+//TSORKUM2 JOB 123456,RAKESH,CLASS=A,MSGCLASS=X,NOTIFY=TSORKUM,         
+//             MSGLEVEL=(1,1)                                           
+//STEP1       EXEC PGM=IEBGENR                                          
+//SYSPRINT DD   SYSOUT=*                                                
+//SYSOUT   DD   SYSOUT=*                                                
+//SYSUT1   DD   DSN=TSORKUM.TRNG.PS1,DISP=SHR                           
+//SYSUT2   DD   DSN=TSORKUM.TRNG.PS2,DISP=OLD                           
+//SYSIN    DD   DUMMY                                                   
+//IF1  IF STEP1.RC<4 THEN                                               
+//STEP2   EXEC PGM=IEBGENR                                              
+//SYSPRINT DD SYSOUT=*                                                  
+//SYSUT1   DD *                                                         
+COPY SUCCESSFUL                                                         
+/*                                                                      

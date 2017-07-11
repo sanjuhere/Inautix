@@ -1,0 +1,16 @@
+ //TSOAVARA    JOB 12345,TSOAVAR,CLASS=A,MSGCLASS=X,NOTIFY=&SYSUID,      
+ //            MSGLEVEL=(1,1)                                            
+ //S1          EXEC PGM=IDCAMS                                           
+ //SYSOUT      DD SYSOUT=*                                               
+ //SYSPRINT    DD SYSOUT=*                                               
+ //SYSIN       DD *                                                      
+  DEFINE CLUSTER (NAME(TSOAVAR.TRAINING.ESDS) -                          
+         TRACKS(10 5) -                                                  
+         CONTROLINTERVALSIZE(4096) -                                     
+         STORAGECLASS(CTSDASD) -                                         
+         RECORDSIZE(80 80) -                                             
+         NONINDEXED -                                                    
+         ) -                                                             
+         DATA (NAME(TSOAVAR.TRAINING.ESDS.DATA) -                        
+         )                                                               
+ /*                                                                      

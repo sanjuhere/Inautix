@@ -1,0 +1,13 @@
+//TSORKUM1 JOB 2121000,RAKESH,CLASS=A,MSGCLASS=X,NOTIFY=&SYSUID,  
+//             MSGLEVEL=(1,1)                                     
+//MYPROC JCLLIB ORDER=TSORKUM.TRNG.DAY2.MYPDS                     
+//S1  EXEC PGM=IEFBR14                                            
+//DD1 DD   DSN=&&DUMMY,DISP=(NEW,PASS,DELETE),                    
+//         DCB=(LRECL=80,BLKSIZE=800,RECFM=FB),                   
+//         SPACE=(TRK,(5,1,0))                                    
+//STEP1 EXEC PROC=MEM2,DNAME1=TSORKUM.TRNG.PS1,                   
+// DNAME2=&&DUMMY                                                 
+//STEP2 EXEC PROC=MEM2,DNAME1=TSORKUM.TRNG.PS2,                   
+// DNAME2=TSORKUM.TRNG.PS1                                        
+//STEP3 EXEC PROC=MEM2,DNAME1=&&DUMMY,                            
+// DNAME2=TSORKUM.TRNG.PS2                                        

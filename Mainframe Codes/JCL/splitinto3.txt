@@ -1,0 +1,15 @@
+//TSOAVAR1 JOB 12345,TSOAVAR,CLASS=A,MSGCLASS=X,NOTIFY=&SYSUID,    
+// MSGLEVEL=(1,1)                                                  
+//******************************************************           
+//S1 EXEC PGM=SORT                                                 
+//SYSOUT DD SYSOUT=*                                               
+//SORTIN DD DSN=TSOAVAR.TRAINING.EMPFILE,DISP=SHR                  
+//F1     DD DSN=TSOAVAR.TRAINING.MYSORT1,DISP=OLD                  
+//F2     DD DSN=TSOAVAR.TRAINING.MYSORT2,DISP=OLD                  
+//F3     DD DSN=TSOAVAR.TRAINING.MYSORT3,DISP=OLD                  
+//SYSIN  DD *                                                      
+         SORT FIELDS=(28,5,CH,A)                                   
+         OUTFIL FNAMES=F1,INCLUDE=(28,5,CH,EQ,C'D0001')            
+         OUTFIL FNAMES=F2,INCLUDE=(28,5,CH,EQ,C'D0002')            
+         OUTFIL FNAMES=F3,INCLUDE=(28,5,CH,EQ,C'D0003')            
+/*                                                                 

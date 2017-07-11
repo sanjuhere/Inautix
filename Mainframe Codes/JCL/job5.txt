@@ -1,0 +1,11 @@
+ //TSORKUM1 JOB 2121000,RAKESH,CLASS=A,MSGCLASS=X,NOTIFY=&SYSUID,       
+ //           MSGLEVEL=(1,1)                                            
+ //STEP1    EXEC PGM=SORT                                               
+ //SORTIN   DD   DSN=TSORKUM.TRNG.PS1,DISP=SHR                          
+ //SORTOUT  DD   DSN=TSORKUM.TRNG.PS2,DISP=OLD                          
+ //SYSOUT   DD   SYSOUT=*                                               
+ //SYSIN    DD   *                                                      
+     SORT FIELDS=COPY                                                   
+     INCLUDE COND=(34,6,CH,GT,C'15000 ')                                
+ /*                                                                     
+ **************************** Bottom of Data ***************************
