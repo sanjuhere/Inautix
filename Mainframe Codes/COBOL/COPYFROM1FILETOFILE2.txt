@@ -1,0 +1,44 @@
+ IDENTIFICATION DIVISION.                                               
+ PROGRAM-ID. TRN1698P                                                   
+ ENVIRONMENT DIVISION.                                                  
+ INPUT-OUTPUT SECTION.                                                  
+ FILE-CONTROL.                                                          
+       SELECT EMPFILE1 ASSIGN TO INDD                                   
+       ORGANIZATION IS SEQUENTIAL                                       
+       ACCESS MODE IS SEQUENTIAL.                                       
+       SELECT EMPFILE2 ASSIGN TO OUTDD                                  
+       ORGANIZATION IS SEQUENTIAL                                       
+       ACCESS MODE IS dynamic.                                      
+ DATA DIVISION.                                                         
+ FILE SECTION.                                                          
+ FD EMPFILE1.                                                           
+ 01 EMPREC1   PIC   X(80).                                              
+ FD EMPFILE2.                                                           
+ 01 EMPREC2    PIC   X(80).                                             
+ WORKING-STORAGE SECTION.                                               
+ 01 EMP-FS     PIC XX.                                                  
+ 01 WS-EOF     PIC X VALUE 'N'.                                         
+ 01 WS-REC  PIC X(80).                                                  
+ PROCEDURE DIVISION.                                                    
+ 1000-MAIN-PARA.                                                        
+      OPEN INPUT  EMPFILE1.                                             
+      OPEN OUTPUT EMPFILE2                                              
+      IF EMP-FS NOT = '00'                                              
+            DISPLAY 'ERROR IN FILE '  , EMP-FS                          
+      END-IF.                                                           
+      PERFORM 2000-PROCESS-PARA UNTIL WS-EOF = 'Y'.                     
+      CLOSE EMPFILE1.                                                   
+      CLOSE EMPFILE2.                                                   
+      STOP RUN.                                                         
+**************************************************************          
+**************************************************************          
+ 2000-PROCESS-PARA.                                                     
+      READ EMPFILE1 AT END MOVE 'Y' TO WS-EOF.                        
+            IF WS-EOF NOT = 'Y'                                       
+            MOVE EMPREC1 TO EMPREC2                                   
+            PERFORM 3000-WRITE-PARA                                   
+            END-IF.                                                   
+*****************************************************************     
+*******************************************************************   
+ 3000-WRITE-PARA.                                                     
+            WRITE EMPREC2 FROM EMPREC1.                               

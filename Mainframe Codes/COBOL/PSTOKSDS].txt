@@ -1,0 +1,56 @@
+ IDENTIFICATION DIVISION.                                               
+ PROGRAM-ID. TRN1698R.                                                  
+ ENVIRONMENT DIVISION.                                                  
+ INPUT-OUTPUT SECTION.                                                  
+ FILE-CONTROL.                                                          
+        SELECT FILE1 ASSIGN TO INDD                                     
+        ORGANIZATION IS SEQUENTIAL                                      
+        ACCESS MODE IS SEQUENTIAL                                       
+        FILE STATUS IS FS1.                                             
+        SELECT FILE2 ASSIGN TO OUTDD                                    
+        ORGANIZATION IS INDEXED                                         
+        ACCESS MODE IS SEQUENTIAL                                       
+        RECORD KEY IS EID                                               
+        FILE STATUS IS FS2.                                             
+ DATA DIVISION.                                                         
+ FILE SECTION.                                                          
+ FD FILE1.                                                              
+ 01 REC1      PIC  X(80).                                                                                                                      
+ FD FILE2.                                                              
+ 01 REC2.                                                               
+       02 EID PIC X(5).                                                 
+       02 RES PIC X(75).                                                
+ WORKING-STORAGE SECTION.                                               
+ 01 FS1       PIC  XX.                                                  
+ 01 FS2       PIC  XX.                                                  
+ 01 EOF       PIC  X VALUE 'N'.                                         
+ 01 WSREC     PIC  X(80).                                               
+ PROCEDURE DIVISION.                                                    
+ MAIN-PARA.                                                             
+         PERFORM OPEN-PARA.                                             
+         PERFORM READ-PARA.                                             
+         PERFORM CLOSE-PARA.                                            
+         STOP RUN.                                                      
+**********************************************************              
+ OPEN-PARA.                                                             
+         OPEN INPUT  FILE1.                                             
+         OPEN OUTPUT FILE2.                                             
+                                                                     
+ READ-PARA.                                                             
+          READ FILE1.                                                   
+          WRITE REC2 FROM REC1.                                         
+          CLOSE FILE2.                                                  
+          OPEN I-O FILE2.                                               
+          PERFORM WRITE-PARA UNTIL EOF = 'Y'.                           
+**********************************************************              
+ WRITE-PARA.                                                            
+          READ FILE1 AT END MOVE 'Y' TO EOF.                            
+          WRITE REC2 FROM REC1.                                         
+          DISPLAY FS2.                                                  
+***********************************************************             
+ CLOSE-PARA.                                                            
+          CLOSE FILE1.                                                  
+          CLOSE FILE2.                                                  
+**************************** Bottom of Data ****************************
+                                                                        
+                                                                        
