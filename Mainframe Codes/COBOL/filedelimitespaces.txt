@@ -1,0 +1,63 @@
+IDENTIFICATION DIVISION.                                         
+PROGRAM-ID. TRN1698Q.                                            
+ENVIRONMENT DIVISION.                                            
+INPUT-OUTPUT SECTION.                                            
+FILE-CONTROL.                                                    
+            SELECT FILE1 ASSIGN TO INDD                          
+            ORGANIZATION IS SEQUENTIAL                           
+            ACCESS MODE IS SEQUENTIAL                            
+            FILE STATUS IS FS1.                                  
+            SELECT FILE2 ASSIGN TO OUTDD                         
+            ORGANIZATION IS SEQUENTIAL                           
+            ACCESS MODE IS SEQUENTIAL                            
+            FILE STATUS IS FS2.                                  
+DATA DIVISION.                                                   
+FILE SECTION.                                                    
+FD FILE1.                                                        
+01 EMP-REC.                                                      
+          05 FID        PIC X(5).                                
+          05 FILLER     PIC X.                                   
+	  05 FNAME      PIC X(15).                                     
+           05 FILLER     PIC X.                                         
+           05 FDEPT      PIC X(5).                                      
+           05 FILLER     PIC X.                                         
+           05 FSALARY    PIC X(6).                                      
+           05 FILLER     PIC X.                                         
+           05 FLOCATION  PIC X(9).                                      
+           05 FILLER     PIC X(36).                                     
+ FD FILE2.                                                              
+ 01 OUTLOL PIC X(80).                                                   
+ WORKING-STORAGE SECTION.                                               
+ 01 EOF     PIC   X VALUE 'N'.                                          
+ 01 FS1     PIC   XX.                                                   
+ 01 FS2     PIC   XX.                                                   
+ PROCEDURE DIVISION.                                                    
+ 1000-PARA.                                                             
+           PERFORM 2000-PARA.                                           
+           PERFORM 3000-PARA.                                           
+           PERFORM 4000-PARA. 
+           STOP RUN.                                                
+*****************************************************************   
+*****************************************************************   
+ 2000-PARA.                                                         
+           OPEN INPUT   FILE1.                                      
+           OPEN OUTPUT  FILE2.                                      
+          PERFORM 3000-PARA UNTIL EOF = 'Y'.                        
+*****************************************************************   
+****************************************************************    
+ 3000-PARA.                                                         
+         READ FILE1 AT END MOVE 'Y' TO EOF.                         
+         STRING FID DELIMITED BY SPACES                             
+         ','  DELIMITED BY SIZE                                     
+         FNAME DELIMITED BY '  '  ','   DELIMITED BY SIZE           
+         FDEPT DELIMITED BY SPACES   ',' DELIMITED BY SIZE          
+         FSALARY DELIMITED BY SPACES   ',' DELIMITED BY SIZE        
+         FLOCATION DELIMITED BY SPACES   '.' DELIMITED BY           
+         SIZE INTO OUTLOL                                           
+         END-STRING.    
+         WRITE OUTLOL.                                               
+**************************************************************       
+***************************************************************      
+ 4000-PARA.                                                          
+         CLOSE FILE1.                                                
+         CLOSE FILE2.                                                                                                                                                                                              
