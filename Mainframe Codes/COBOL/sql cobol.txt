@@ -1,0 +1,52 @@
+       IDENTIFICATION DIVISION.                                         
+       PROGRAM-ID. SQLINS.                                              
+       ENVIRONMENT DIVISION.                                            
+       DATA DIVISION.                                                   
+       WORKING-STORAGE SECTION.                                         
+           EXEC SQL                                                     
+             INCLUDE SQLCA                                              
+           END-EXEC.                                                    
+                                                                        
+           EXEC SQL                                                     
+             INCLUDE TRNGDEPT                                           
+           END-EXEC.                                                    
+       PROCEDURE DIVISION.                                              
+       1000-MAIN-PARA.                                                  
+           EXEC SQL                                                     
+             INSERT INTO DEPT_TABLE VALUES(201469,'LOKESH')             
+          END-EXEC.                                                
+          EVALUATE SQLCODE                                         
+            WHEN 0                                                 
+               DISPLAY 'SUCCESS'                                   
+            WHEN OTHER                                             
+              DISPLAY 'ERROR'                                      
+            END-EVALUATE.                                          
+            STOP RUN.              
+
+
+
+
+        IDENTIFICATION DIVISION.                                        
+        PROGRAM-ID. SQL1.                                               
+        ENVIRONMENT DIVISION.                                           
+        DATA DIVISION.                                                  
+        WORKING-STORAGE SECTION.                                        
+             EXEC SQL                                                   
+               INCLUDE SQLCA                                            
+             END-EXEC.                                                  
+             EXEC SQL                                                   
+               INCLUDE DEP                                              
+             END-EXEC.                                                  
+        PROCEDURE DIVISION.                                             
+        1000-MAIN-PARA.                                                 
+            EXEC SQL                                                    
+              SELECT DEPT_NUMBER,DEPT_NAME                              
+              INTO                                                      
+             :DEPT-NUMBER,                                          
+             :DEPT-NAME                                             
+             FROM TGRPTRNG.DEPT_TABLE                               
+             WHERE DEPT_NUMBER=91                                   
+           END-EXEC.                                                
+           DISPLAY ' DEPT-NUMBER  ID ' , DEPT-NUMBER.               
+           DISPLAY ' DEPT-NAME  ID ' , DEPT-NAME.                   
+           STOP RUN.                                                                                
