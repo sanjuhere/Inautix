@@ -1,0 +1,95 @@
+       IDENTIFICATION DIVISION.                                      
+       PROGRAM-ID. TRN97CUR.                                         
+       ENVIRONMENT DIVISION.                                         
+       INPUT-OUTPUT SECTION.                                         
+       FILE-CONTROL.                                                 
+           SELECT FLATFILE ASSIGN TO INDD                            
+           ORGANIZATION IS SEQUENTIAL                                
+           ACCESS MODE IS SEQUENTIAL                                 
+           FILE STATUS IS WS-FS1.                                    
+       DATA DIVISION.                                                
+       FILE SECTION.                                                 
+       FD FLATFILE.                                                  
+       01  DCLEMPT-TABLE.                                            
+           10 EMP-NUMBER           PIC S9(9) USAGE COMP.             
+           10 EMP-NAME             PIC X(40).                        
+           10 DOJ                  PIC X(10).                        
+            10 PHONE-NUMBER         PIC S9(9) USAGE COMP.          
+            10 DPRT-NUMBER          PIC S9(9) USAGE COMP.          
+            10 SALARY               PIC S9(9) USAGE COMP.          
+            10 ADRSS.                                              
+               49 ADDRESS-LEN       PIC S9(4) USAGE COMP.          
+               49 ADDRESS-TEXT      PIC X(20).                     
+            10 UPDT-STAT-CD         PIC X(1).                      
+            10 UPDT-USR-ID          PIC X(8).                      
+            10 UPDT-TS              PIC X(26).                     
+        WORKING-STORAGE SECTION.                                   
+        01 WS-COUNT PIC S9(4) COMP VALUE 0.                        
+        01 WS-COUNT1 PIC S9(4) COMP VALUE 0.                       
+        01 WS-COUNT2 PIC S9(4) COMP VALUE 0.                       
+        01 WS-FS1   PIC XX.                                        
+        01 WS-EOF PIC X VALUE 'N'.                                 
+        01 EDITING PIC -Z(9) .                                     
+            EXEC SQL                                               
+             INCLUDE SQLCA                                            
+          END-EXEC.                                                   
+          EXEC SQL                                                    
+             INCLUDE TRNGEMPT                                         
+          END-EXEC.                                                   
+          EXEC SQL                                                    
+             DECLARE C1 CURSOR FOR                                    
+             SELECT                                                   
+                EMP_NUMBER,                                           
+                EMP_NAME,                                             
+                DOJ,                                                  
+                PHONE_NUMBER,                                         
+                DPRT_NUMBER,                                          
+                SALARY,                                               
+                ADDRESS,                                              
+                UPDT_STAT_CD,                                         
+                UPDT_USR_ID,                                          
+                UPDT_TS FROM EMPT_TABLE                                
+             FETCH FIRST 50 ROWS ONLY                                  
+             FOR READ ONLY                                             
+          END-EXEC.                                                    
+      PROCEDURE DIVISION.                                              
+      1000-MAIN-PARA.                                                  
+          PERFORM 2000-OPEN-PARA.                                      
+          PERFORM 2000-READ-PARA UNTIL SQLCODE=100.                    
+          PERFORM 2000-CLOSE-PARA.                                     
+          PERFORM 2000-END-PARA.                                       
+      2000-OPEN-PARA.                                                  
+          EXEC SQL                                                     
+          OPEN C1                                                      
+          END-EXEC.                                                    
+          IF SQLCODE NOT=0 THEN                                        
+          PERFORM 2000-CLOSE-PARA                                      
+          PERFORM 2000-END-PARA                                        
+         END-IF.                                                      
+         OPEN OUTPUT FLATFILE.                                        
+         IF WS-FS1 NOT='00' THEN                                      
+         PERFORM 2000-CLOSE-PARA                                      
+         PERFORM 2000-END-PARA                                        
+         END-IF.                                                      
+     2000-READ-PARA.                                                  
+         EXEC SQL                                                     
+            FETCH C1 INTO                                             
+              :EMP-EMP-NUMBER,                                        
+              :EMP-EMP-NAME,                                          
+              :EMP-DOJ,                                               
+              :EMP-PHONE-NUMBER,                                      
+              :EMP-DPRT-NUMBER,                                       
+              :EMP-SALARY,                                            
+              :EMP-ADDRESS,                                           
+              :EMP-UPDT-STAT-CD,                                      
+             :EMP-UPDT-USR-ID,                                      
+             :EMP-UPDT-TS                                           
+        END-EXEC.                                                   
+        WRITE DCLEMPT-TABLE FROM EMPT-TABLE                         
+    2000-CLOSE-PARA.                                                
+        EXEC SQL                                                    
+        CLOSE C1                                                    
+        END-EXEC.                                                   
+        CLOSE FLATFILE.                                             
+    2000-END-PARA.                                                  
+        STOP RUN.                                                   
