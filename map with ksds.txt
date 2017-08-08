@@ -1,0 +1,526 @@
+************************ Top of Data *********************
+   ID DIVISION.                                           
+   PROGRAM-ID.    TRN00072.                               
+   DATE-WRITTEN.  02/08/2017.                             
+   DATE-COMPILED. 04/08/2017.                             
+ *******************************************************  
+ *                ABC LIBRARY OF INDIA                    
+ *                 BOOK ENTRY SCREEN                      
+ *                                                        
+ *  THIS IS A CICS-COBOL PROGRAM FOR BOOK ENTRY SCREEN    
+ *                                                        
+ * 1. USER ENTERS BOOK NUMBER AND PRESSES "ENTER" KEY:    
+ *    BOOK INFORMATION NEEDS TO BE DISPLAYED BASED ON     
+ *    THE BOOK DATA AVAILABLE IN THE FILE.                
+ *                                                        
+ * A. IF THE BOOK INFORMATION NOT FOUND THEN ALLOW        
+ *    THE USER TO TYPE THE REST OF THE INFORMATION.       
+ * B. IF THE BOOK INFORMATION FOUND THEN, ALLOW THE       
+ *    USER TO CHANGE THE DETAILS BASED ON PF5 KEY         
+*    PRESS UPDATE THE CHANGES.                                   
+*    BASED ON PF12 KEY PRESS DELETE THE BOOK DETAILS             
+*                                                                
+* 2. ENTER ALL THE INFORMATION AND PRESS PF4: INSERT             
+*    THE  RECORD  INTO ABCBOOK FILE.IF THE BOOK                  
+*    BOOK NUMBER ALREADY EXISTS,DISPLAY THE ERROR MESSAGE        
+* 3. PF13 KEY PRESS: TRANSFER THE CONTROL TO PROGRAM 2           
+*    (MEMBER ENTRY)                                              
+*                                                                
+* 4. PF14 KEY PRESS: TRANSFER THE CONTROL TO PROGRAM 3           
+*    (BOOK TRANSACTION ENTRY SCREEN)                             
+* 5. PF15 KEY PRESS: TRANSFER THE CONTROL TO REPORT              
+*    PROGRAM 1 (BOOK REPORT SCREEN)                              
+*******************************************************          
+  DATA DIVISION.                                                 
+**************************************************************   
+  WORKING-STORAGE SECTION.                                       
+  01 ABCBOOK.                                                    
+     05 ABCBOOK-BOOK-NO-F             PIC X(6).                  
+     05 ABCBOOK-TITLE-F               PIC X(20).              
+     05 ABCBOOK-AUTHOR-F              PIC X(20).              
+     05 ABCBOOK-DATE-PUR.                                     
+        10 ABCBOOK-DATE-PUR-YYYY-F    PIC 9(4).               
+        10 FILLER                     PIC X VALUE '-'.        
+        10 ABCBOOK-DATE-PUR-MM-F      PIC 9(2).               
+        10 FILLER                     PIC X VALUE '-'.        
+        10 ABCBOOK-DATE-PUR-DD-F      PIC 9(2).               
+     05 ABCBOOK-AVAILABLE-F           PIC X.                  
+     05 ABCBOOK-DATE-RETURN.                                  
+        10 ABCBOOK-DATE-RETURN-YYYY-F PIC 9(4).               
+        10 FILLER                     PIC X VALUE '-'.        
+        10 ABCBOOK-DATE-RETURN-MM-F   PIC 9(2).               
+        10 FILLER                     PIC X VALUE '-'.        
+        10 ABCBOOK-DATE-RETURN-DD-F   PIC 9(2).               
+     05 ABCBOOK-MEMBER-F              PIC X(6).               
+     05 ABCBOOK-PRICE-F.                                      
+        10 ABCBOOK-PRICE-R-F          PIC 9(4).               
+        10 ABCBOOK-PRICE-P-F          PIC 9(2).               
+     05 FILLER                        PIC X(31).                  
+   COPY TRN072S.                                                  
+   COPY DFHBMSCA.                                                 
+   COPY DFHAID.                                                   
+  01 WS-RESP                          PIC S9(8) COMP.             
+  01 COUNTER                          PIC  9(1).                  
+  01 WS-TEXT                          PIC X(30)                   
+                                      VALUE 'END OF TRANSACTION'. 
+  01 WS-COMM                          PIC X VALUE 'N'.            
+     88 S-FLAG VALUE 'S'.                                         
+     88 U-FLAG VALUE 'U'.                                         
+     88 D-FLAG VALUE 'D'.                                         
+***************************************************************** 
+  LINKAGE SECTION.                                                
+  01 DFHCOMMAREA                      PIC X.                      
+***************************************************************   
+  PROCEDURE DIVISION.                                             
+        IF EIBCALEN = 0                                           
+         MOVE LOW-VALUES TO LIB123MO                              
+                                                                  
+         MOVE -1 TO ABCBOOK-BOOK-NO-ML      OF LIB123MI      
+          EXEC CICS                                          
+          SEND MAP('LIB123M')                                
+               MAPSET('TRN072S')                             
+               ERASE                                         
+               FREEKB                                        
+               CURSOR                                        
+          END-EXEC                                           
+          EXEC CICS                                          
+              RETURN TRANSID('TN72')                         
+                COMMAREA(WS-COMM)                            
+          END-EXEC                                           
+        ELSE                                                 
+        EVALUATE EIBAID                                      
+          WHEN DFHPF2     PERFORM  REFRESH-PARA-100          
+          WHEN DFHENTER   PERFORM  VIEW-PARA-200             
+          WHEN DFHPF3     PERFORM  EXIT-PARA-300             
+          WHEN DFHPF4     PERFORM  SAVE-PARA-400             
+          WHEN DFHPF5     PERFORM  UPDATE-PARA-500           
+          WHEN DFHPF12    PERFORM  DELETE-PARA-600              
+          WHEN DFHPF13    PERFORM  MEMBER-SCREEN-PARA-700       
+          WHEN DFHPF14    PERFORM  BOOK-TRAN-PARA-800           
+          WHEN DFHPF15    PERFORM  REPORT1-PARA-900             
+          WHEN OTHER      PERFORM  EXIT-PARA-300                
+        END-EVALUATE                                            
+        END-IF.                                                 
+*************************************************************** 
+  REFRESH-PARA-100.                                             
+          MOVE LOW-VALUES TO LIB123MO                           
+          MOVE -1 TO ABCBOOK-BOOK-NO-ML     OF LIB123MI         
+          PERFORM SEND-RETURN-PARA-950.                         
+*************************************************************** 
+  VIEW-PARA-200.                                                
+        EXEC CICS                                               
+          RECEIVE  MAP('LIB123M')                               
+                  MAPSET('TRN072S')                             
+                  RESP(WS-RESP)                                 
+        END-EXEC.                                               
+                                                                
+        IF WS-RESP = DFHRESP(NORMAL)                        
+          MOVE ABCBOOK-BOOK-NO-MI           OF LIB123MI     
+          TO ABCBOOK-BOOK-NO-F                              
+           EXEC CICS                                        
+               READ FILE('TRNFILEH')                        
+                 INTO(ABCBOOK)                              
+                 RIDFLD(ABCBOOK-BOOK-NO-F)                  
+                 RESP(WS-RESP)                              
+           END-EXEC                                         
+        IF WS-RESP = DFHRESP(NORMAL)                        
+           PERFORM  MOVE-PARA-975                           
+           MOVE -1 TO ABCBOOK-BOOK-NO-ML    OF LIB123MI     
+           MOVE 'BOOK FOUND' TO MSG1-MO     OF LIB123MO     
+           PERFORM SEND-RETURN-PARA-950                     
+        ELSE                                                
+           MOVE -1 TO ABCBOOK-BOOK-NO-ML    OF LIB123MI     
+           MOVE 'BOOK NOT FOUND' TO MSG1-MO OF LIB123MO     
+        END-IF                                              
+        ELSE                                                
+           MOVE -1 TO ABCBOOK-BOOK-NO-ML    OF LIB123MI        
+           MOVE 'ENTER BOOK NO' TO MSG1-MO  OF LIB123MO        
+        END-IF.                                                
+        PERFORM SEND-RETURN-PARA-950.                          
+***************************************************************
+  EXIT-PARA-300.                                               
+          EXEC CICS                                            
+               SEND TEXT                                       
+               FROM(WS-TEXT)                                   
+               ERASE                                           
+          END-EXEC.                                            
+          EXEC CICS                                            
+               RETURN                                          
+          END-EXEC.                                            
+***************************************************************
+  SAVE-PARA-400.                                               
+        EXEC CICS                                              
+          RECEIVE  MAP('LIB123M')                              
+                  MAPSET('TRN072S')                            
+                  RESP(WS-RESP)                                 
+        END-EXEC.                                               
+        IF WS-RESP = DFHRESP(NORMAL)                            
+           MOVE ABCBOOK-BOOK-NO-MI          OF LIB123MI         
+           TO ABCBOOK-BOOK-NO-F                                 
+           EXEC CICS                                            
+               READ FILE('TRNFILEH')                            
+                 INTO(ABCBOOK)                                  
+                 RIDFLD(ABCBOOK-BOOK-NO-F)                      
+                 RESP(WS-RESP)                                  
+           END-EXEC                                             
+        IF WS-RESP = DFHRESP(NORMAL)                            
+           MOVE -1 TO ABCBOOK-BOOK-NO-ML    OF LIB123MI         
+           MOVE 'BOOK NO ALREADY EXIST'                         
+           TO MSG1-MO                       OF LIB123MO         
+           PERFORM SEND-RETURN-PARA-950                         
+        ELSE                                                    
+           SET S-FLAG TO TRUE                                   
+           PERFORM SAVED-PARA-450                               
+        END-IF                                                   
+        ELSE                                                     
+           MOVE -1 TO ABCBOOK-BOOK-NO-ML    OF LIB123MI          
+           MOVE 'ENTER BOOKNO     ' TO                           
+           MSG1-MO                          OF LIB123MO          
+        END-IF.                                                  
+           PERFORM SEND-RETURN-PARA-950.                         
+***************************************************************  
+  SAVED-PARA-450.                                                
+           MOVE ABCBOOK-BOOK-NO-MI          OF LIB123MI          
+           TO ABCBOOK-BOOK-NO-F                                  
+           PERFORM VALIDATE-PARA-995                             
+        IF COUNTER = 7                                           
+                EXEC CICS                                        
+                 WRITE  FILE('TRNFILEH')                         
+                 FROM(ABCBOOK)                                   
+                 RIDFLD(ABCBOOK-BOOK-NO-F)                       
+                 RESP(WS-RESP)                                   
+                END-EXEC                                         
+                                                                 
+        IF WS-RESP = DFHRESP(NORMAL)                           
+           MOVE DFHBMFSE TO                                    
+           ABCBOOK-AVAILABLE-MA             OF LIB123MO        
+           MOVE 'Y' TO ABCBOOK-AVAILABLE-F                     
+           MOVE -1 TO ABCBOOK-BOOK-NO-ML    OF LIB123MI        
+           MOVE 'RECORD ADDED' TO MSG1-MO   OF LIB123MO        
+           PERFORM SEND-RETURN-PARA-950                        
+        ELSE                                                   
+           MOVE -1 TO ABCBOOK-BOOK-NO-ML    OF LIB123MI        
+           MOVE 'RECORD NOT ADDED' TO                          
+           MSG1-MO                          OF LIB123MO        
+        END-IF                                                 
+        ELSE                                                   
+           MOVE DFHBMPRF TO                                    
+           ABCBOOK-BOOK-NO-MA               OF LIB123MO        
+           SET S-FLAG TO TRUE                                  
+        END-IF.                                                
+        PERFORM SEND-RETURN-PARA-950.                          
+***************************************************************
+  UPDATE-PARA-500.                                          
+        EXEC CICS                                           
+          RECEIVE  MAP('LIB123M')                           
+                  MAPSET('TRN072S')                         
+                  RESP(WS-RESP)                             
+        END-EXEC.                                           
+        IF WS-RESP = DFHRESP(NORMAL)                        
+           MOVE ABCBOOK-BOOK-NO-MI          OF LIB123MI     
+        TO ABCBOOK-BOOK-NO-F                                
+        EXEC CICS                                           
+               READ FILE('TRNFILEH')                        
+                 INTO(ABCBOOK)                              
+                 RIDFLD(ABCBOOK-BOOK-NO-F)                  
+                 RESP(WS-RESP)                              
+        END-EXEC                                            
+        IF WS-RESP = DFHRESP(NORMAL)                        
+           SET U-FLAG TO TRUE                               
+           MOVE DFHBMPRF TO                                 
+           ABCBOOK-BOOK-NO-MA               OF LIB123MO     
+                                                            
+           PERFORM CONFIRM-UPD-PARA-550                          
+        ELSE                                                     
+           PERFORM SEND-RETURN-PARA-950                          
+           MOVE -1 TO ABCBOOK-BOOK-NO-ML    OF LIB123MI          
+           MOVE 'ENTER ANOTHER VALUE'                            
+           TO MSG1-MO                       OF LIB123MO          
+        END-IF                                                   
+        ELSE                                                     
+           MOVE 'ENTER  BOOK NUMBER '                            
+           TO MSG1-MO                       OF LIB123MO          
+           MOVE -1 TO ABCBOOK-BOOK-NO-ML    OF LIB123MI          
+        END-IF.                                                  
+        PERFORM SEND-RETURN-PARA-950.                            
+**************************************************************   
+  CONFIRM-UPD-PARA-550.                                          
+        PERFORM VALIDATE-PARA-995.                               
+        IF COUNTER = 7                                           
+        EXEC CICS                                                
+               READ FILE('TRNFILEH')                             
+                                                                 
+                 INTO(ABCBOOK)                                 
+                 RIDFLD(ABCBOOK-BOOK-NO-F)                     
+                 RESP(WS-RESP)                                 
+                 UPDATE                                        
+        END-EXEC                                               
+        IF WS-RESP = DFHRESP(NORMAL)                           
+           MOVE  ABCBOOK-BOOK-NO-MI          OF LIB123MI       
+           TO ABCBOOK-BOOK-NO-F                                
+           PERFORM MOVE1-PARA-985                              
+        EXEC CICS                                              
+               REWRITE FILE('TRNFILEH')                        
+               FROM (ABCBOOK)                                  
+               RESP(WS-RESP)                                   
+        END-EXEC                                               
+        IF WS-RESP = DFHRESP(NORMAL)                           
+           MOVE -1 TO ABCBOOK-BOOK-NO-ML     OF LIB123MI       
+           MOVE 'VALUE UPDATED' TO MSG1-MO   OF LIB123MO       
+           PERFORM SEND-RETURN-PARA-950                        
+        ELSE                                                   
+           MOVE -1 TO ABCBOOK-BOOK-NO-ML     OF LIB123MI    
+           MOVE 'NOT UPDATED' TO MSG1-MO     OF LIB123MO    
+           END-IF                                           
+        ELSE                                                
+           SET U-FLAG TO TRUE                               
+           MOVE DFHBMPRF TO                                 
+           ABCBOOK-BOOK-NO-MA                OF LIB123MO    
+           MOVE -1 TO ABCBOOK-BOOK-NO-ML     OF LIB123MI    
+           MOVE 'ENTER BOOK NUMBER '                        
+           TO MSG1-MO                        OF LIB123MO    
+        END-IF.                                             
+           PERFORM SEND-RETURN-PARA-950.                    
+************************************************************
+  DELETE-PARA-600.                                          
+        EXEC CICS                                           
+           RECEIVE  MAP('LIB123M')                          
+                  MAPSET('TRN072S')                         
+                  RESP(WS-RESP)                             
+        END-EXEC.                                           
+        IF WS-RESP = DFHRESP(NORMAL)                        
+        MOVE ABCBOOK-BOOK-NO-MI              OF LIB123MI    
+        TO ABCBOOK-BOOK-NO-F                                
+        EXEC CICS                                           
+               READ FILE('TRNFILEH')                        
+                 INTO(ABCBOOK)                              
+                 RIDFLD(ABCBOOK-BOOK-NO-F)                  
+                 RESP(WS-RESP)                              
+        END-EXEC                                            
+        IF WS-RESP = DFHRESP(NORMAL)                        
+           PERFORM  MOVE-PARA-975                           
+           SET D-FLAG TO TRUE                               
+           PERFORM CONFIRM-DELETE-PARA-650                  
+           PERFORM SEND-RETURN-PARA-950                     
+        ELSE                                                
+           MOVE -1 TO ABCBOOK-BOOK-NO-ML     OF LIB123MI    
+           MOVE 'BOOK NOT FOUND' TO MSG1-MO  OF LIB123MO    
+        END-IF                                              
+        ELSE                                                
+            MOVE -1 TO ABCBOOK-BOOK-NO-ML     OF LIB123MI     
+            MOVE 'ENTER BOOK NO ' TO MSG1-MO  OF LIB123MO     
+         END-IF.                                              
+            PERFORM SEND-RETURN-PARA-950.                     
+ *************************************************************
+   CONFIRM-DELETE-PARA-650.                                   
+            PERFORM VALIDATE-PARA-995.                        
+            MOVE ABCBOOK-BOOK-NO-MI           OF LIB123MI     
+            TO ABCBOOK-BOOK-NO-F                              
+         EXEC CICS                                            
+                READ FILE('TRNFILEH')                         
+                  INTO(ABCBOOK)                               
+                  RIDFLD(ABCBOOK-BOOK-NO-F)                   
+                  RESP(WS-RESP)                               
+                  UPDATE                                      
+         END-EXEC                                             
+            MOVE ABCBOOK-BOOK-NO-MI           OF LIB123MI     
+            TO ABCBOOK-BOOK-NO-F                              
+         EXEC CICS                                            
+           DELETE FILE('TRNFILEH')                            
+                 RIDFLD(ABCBOOK-BOOK-NO-F)                    
+                 RESP(WS-RESP)                                
+        END-EXEC                                              
+        IF WS-RESP = DFHRESP(NORMAL)                          
+           MOVE -1 TO ABCBOOK-BOOK-NO-ML     OF LIB123MI      
+           MOVE 'BOOK DELETED' TO MSG1-MO    OF LIB123MO      
+           PERFORM SEND-RETURN-PARA-950                       
+        ELSE                                                  
+           MOVE -1 TO ABCBOOK-BOOK-NO-ML    OF LIB123MI       
+           MOVE 'BOOK NOT DELETED'                            
+           TO MSG1-MO                       OF LIB123MO       
+        END-IF.                                               
+           PERFORM SEND-RETURN-PARA-950.                      
+**************************************************************
+  MEMBER-SCREEN-PARA-700.                                     
+       EXEC CICS                                              
+         XCTL PROGRAM ('TRN00073')                            
+       END-EXEC.                                              
+***************************************************************** 
+  BOOK-TRAN-PARA-800.                                             
+       EXEC CICS                                                  
+         XCTL PROGRAM ('TRN00077')                                
+       END-EXEC.                                                  
+***************************************************************** 
+  REPORT1-PARA-900.                                               
+       EXEC CICS                                                  
+         XCTL PROGRAM ('TRN00071')                                
+       END-EXEC.                                                  
+***************************************************************** 
+  SEND-RETURN-PARA-950.                                           
+        EXEC CICS                                                 
+          SEND MAP('LIB123M')                                     
+               MAPSET('TRN072S')                                  
+               CURSOR                                             
+        END-EXEC.                                                 
+        EXEC CICS                                                 
+              RETURN TRANSID('TN72')                              
+               COMMAREA(WS-COMM)                                
+        END-EXEC.                                               
+****************************************************************
+  MOVE-PARA-975.                                                
+           MOVE ABCBOOK-BOOK-NO-F                               
+           TO ABCBOOK-BOOK-NO-MO            OF LIB123MO.        
+           MOVE ABCBOOK-TITLE-F    TO                           
+           ABCBOOK-TITLEO                   OF LIB123MO.        
+           MOVE ABCBOOK-AUTHOR-F   TO                           
+           ABCBOOK-AUTHOR-MO               OF LIB123MO.         
+           MOVE ABCBOOK-DATE-PUR-DD-F TO                        
+           ABCBOOK-DATE-PUR-DD-MO          OF LIB123MO.         
+           MOVE ABCBOOK-DATE-PUR-MM-F TO                        
+           ABCBOOK-DATE-PUR-MM-MO          OF LIB123MO.         
+           MOVE ABCBOOK-DATE-PUR-YYYY-F TO                      
+           ABCBOOK-DATE-PUR-YYYY-MO        OF LIB123MO.         
+           MOVE ABCBOOK-AVAILABLE-F TO                          
+           ABCBOOK-AVAILABLE-MO            OF LIB123MO.         
+           MOVE ABCBOOK-DATE-RETURN-DD-F TO                     
+           ABCBOOK-DATE-RETURN-DD-MO       OF LIB123MO.        
+           MOVE ABCBOOK-DATE-RETURN-MM-F                       
+           TO ABCBOOK-DATE-RETURN-MM-MO    OF LIB123MO.        
+           MOVE ABCBOOK-DATE-RETURN-YYYY-F  TO                 
+           ABCBOOK-DATE-RETURN-YYYY-MO     OF LIB123MO.        
+           MOVE ABCBOOK-MEMBER-F TO                            
+           ABCBOOK-MEMBER-MO               OF LIB123MO.        
+           MOVE ABCBOOK-PRICE-R-F  TO                          
+           ABCBOOK-PRICE-R-MO              OF LIB123MO.        
+           MOVE ABCBOOK-PRICE-P-F    TO                        
+           ABCBOOK-PRICE-P-MO              OF LIB123MO.        
+***************************************************************
+  MOVE1-PARA-985.                                              
+           MOVE ABCBOOK-BOOK-NO-MI         OF LIB123MI         
+           TO ABCBOOK-BOOK-NO-F.                               
+           MOVE ABCBOOK-TITLEI             OF LIB123MI         
+           TO ABCBOOK-TITLE-F.                                 
+           MOVE ABCBOOK-AUTHOR-MI          OF LIB123MI         
+           TO ABCBOOK-AUTHOR-F.                                
+                                                               
+           MOVE ABCBOOK-DATE-PUR-DD-MI     OF LIB123MI    
+           TO  ABCBOOK-DATE-PUR-DD-F.                     
+           MOVE ABCBOOK-DATE-PUR-MM-MI     OF LIB123MI    
+           TO ABCBOOK-DATE-PUR-MM-F.                      
+           MOVE ABCBOOK-DATE-PUR-YYYY-MI   OF LIB123MI    
+           TO ABCBOOK-DATE-PUR-YYYY-F.                    
+           MOVE ABCBOOK-AVAILABLE-MI       OF LIB123MI    
+           TO ABCBOOK-AVAILABLE-F.                        
+           MOVE ABCBOOK-DATE-RETURN-DD-MI  OF LIB123MI    
+           TO ABCBOOK-DATE-RETURN-DD-F.                   
+           MOVE ABCBOOK-DATE-RETURN-MM-MI  OF LIB123MI    
+           TO ABCBOOK-DATE-RETURN-MM-F.                   
+           MOVE ABCBOOK-DATE-RETURN-YYYY-MI               
+                                           OF LIB123MI    
+           TO ABCBOOK-DATE-RETURN-YYYY-F.                 
+           MOVE ABCBOOK-MEMBER-MI          OF LIB123MI    
+           TO ABCBOOK-MEMBER-F.                           
+           MOVE ABCBOOK-PRICE-R-MI         OF LIB123MI    
+           TO ABCBOOK-PRICE-R-F.                          
+           MOVE ABCBOOK-PRICE-P-MI         OF LIB123MI            
+           TO ABCBOOK-PRICE-P-F .                                 
+***************************************************************   
+  VALIDATE-PARA-995.                                              
+        IF ABCBOOK-TITLEL                  OF LIB123MI = 0        
+           MOVE 'ENTER VALID BOOK NAME '                          
+           TO MSG1-MO                      OF LIB123MO            
+           MOVE -1 TO ABCBOOK-TITLEL       OF LIB123MI            
+        ELSE                                                      
+           MOVE ABCBOOK-TITLEI             OF LIB123MI            
+           TO ABCBOOK-TITLE-F                                     
+           ADD 1 TO COUNTER                                       
+           MOVE DFHBMFSE TO ABCBOOK-TITLEA OF LIB123MO            
+        END-IF.                                                   
+        IF ABCBOOK-AUTHOR-ML               OF LIB123MI = 0        
+           MOVE 'ENTER VALID AUTHOR ' TO                          
+           MSG1-MO                         OF LIB123MO            
+           MOVE -1 TO ABCBOOK-AUTHOR-ML    OF LIB123MI            
+        ELSE                                                      
+           MOVE ABCBOOK-AUTHOR-MI          OF LIB123MI            
+           TO  ABCBOOK-AUTHOR-F                                   
+           MOVE DFHBMFSE TO                                       
+           ABCBOOK-AUTHOR-MA               OF LIB123MO            
+           ADD 1 TO COUNTER                                       
+        END-IF.                                                   
+        IF ABCBOOK-DATE-PUR-DD-MI          OF LIB123MI = SPACES OR
+           ABCBOOK-DATE-PUR-DD-ML          OF LIB123MI = 0 OR     
+           ABCBOOK-DATE-PUR-DD-MI          OF LIB123MI            
+           IS NOT NUMERIC                                         
+           OR ABCBOOK-DATE-PUR-DD-MI       OF LIB123MI > 31       
+           MOVE 'ENTER VALID DAY '                                
+           TO MSG1-MO                      OF LIB123MO            
+           MOVE -1 TO ABCBOOK-DATE-PUR-DD-ML                      
+                                           OF LIB123MI            
+        ELSE                                                      
+           MOVE ABCBOOK-DATE-PUR-DD-MI     OF LIB123MI            
+           TO  ABCBOOK-DATE-PUR-DD-F                              
+           ADD 1 TO COUNTER                                       
+           MOVE DFHBMFSE TO                                       
+           ABCBOOK-DATE-PUR-DD-MA          OF LIB123MO            
+        END-IF.                                                   
+        IF ABCBOOK-DATE-PUR-MM-MI          OF LIB123MI = SPACES OR
+           ABCBOOK-DATE-PUR-MM-ML          OF LIB123MI = 0 OR     
+           ABCBOOK-DATE-PUR-MM-MI          OF LIB123MI > 12 OR    
+           ABCBOOK-DATE-PUR-MM-MI          OF LIB123MI            
+           IS NOT NUMERIC                                         
+           MOVE 'ENTER VALID MONTH'                               
+           TO MSG1-MO                      OF LIB123MO            
+           MOVE -1 TO                                             
+           ABCBOOK-DATE-PUR-MM-ML          OF LIB123MI            
+        ELSE                                                      
+           MOVE ABCBOOK-DATE-PUR-MM-MI     OF LIB123MI TO         
+           ABCBOOK-DATE-PUR-MM-F                                  
+           ADD 1 TO COUNTER                                       
+           MOVE DFHBMFSE TO                                       
+           ABCBOOK-DATE-PUR-MM-MA          OF LIB123MO            
+        END-IF.                                                   
+        IF ABCBOOK-DATE-PUR-YYYY-MI        OF LIB123MI = SPACES OR
+           ABCBOOK-DATE-PUR-YYYY-ML        OF LIB123MI   = 0 OR   
+           ABCBOOK-DATE-PUR-YYYY-MI        OF LIB123MI            
+           IS NOT NUMERIC                                         
+           OR ABCBOOK-DATE-PUR-YYYY-ML     OF LIB123MI   > 4      
+           MOVE 'ENTER VALID YEAR'                                
+           TO  MSG1-MO                     OF LIB123MO            
+           MOVE -1 TO ABCBOOK-DATE-PUR-YYYY-ML                    
+                                           OF LIB123MI            
+        ELSE                                                      
+           MOVE ABCBOOK-DATE-PUR-YYYY-MI   OF LIB123MI   TO       
+           ABCBOOK-DATE-PUR-YYYY-F                                
+           ADD 1 TO COUNTER                                       
+          MOVE DFHBMFSE TO ABCBOOK-DATE-PUR-YYYY-MA OF LIB123MO   
+        END-IF.                                                   
+        IF ABCBOOK-PRICE-R-MI              OF LIB123MI = SPACES OR
+           ABCBOOK-PRICE-R-ML              OF LIB123MI = 0 OR     
+           ABCBOOK-PRICE-R-MI              OF LIB123MI            
+           IS NOT NUMERIC                                         
+           MOVE 'ENTER VALID PRICE '                              
+           TO MSG1-MO                      OF LIB123MO            
+           MOVE -1 TO ABCBOOK-PRICE-R-ML   OF LIB123MI            
+        ELSE                                                      
+           MOVE ABCBOOK-PRICE-R-MI         OF LIB123MI            
+           TO ABCBOOK-PRICE-R-F                                   
+           ADD 1 TO COUNTER                                       
+           MOVE DFHBMFSE TO                                       
+           ABCBOOK-PRICE-R-MA              OF LIB123MO            
+        END-IF.                                                   
+        IF ABCBOOK-PRICE-P-MI              OF LIB123MI = SPACES OR
+           ABCBOOK-PRICE-P-ML              OF LIB123MI = 0 OR     
+           ABCBOOK-PRICE-P-MI              OF LIB123MI            
+           IS NOT NUMERIC                                         
+           MOVE 'ENTER VALID PRICE '                              
+           TO MSG1-MO                      OF LIB123MO            
+           MOVE -1 TO ABCBOOK-PRICE-P-ML   OF LIB123MI            
+        ELSE                                                      
+           MOVE ABCBOOK-PRICE-P-MI         OF LIB123MI            
+           TO ABCBOOK-PRICE-P-F                            
+           ADD 1 TO COUNTER                                
+           MOVE DFHBMFSE TO                                
+           ABCBOOK-PRICE-P-MA              OF LIB123MO     
+        END-IF.                                            
+******************** Bottom of Data *****************
+                                                     
