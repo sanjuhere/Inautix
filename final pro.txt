@@ -1,0 +1,207 @@
+       IDENTIFICATION DIVISION.                        
+000200 PROGRAM-ID. TRN00114.                           
+       ENVIRONMENT DIVISION.                           
+       INPUT-OUTPUT SECTION.                           
+       DATA DIVISION.                                  
+       WORKING-STORAGE SECTION.                        
+       COPY TRN091S.                                   
+       COPY DFHAID.                                    
+       COPY DFHBMSCA.                                  
+       01 STUDENT.                                     
+          02 ROLLNO PIC X(3).                          
+          02 NAMES  PIC X(15) VALUE SPACES.            
+          02 SUB    PIC 999 OCCURS 5 TIMES.            
+          02 EDIT-AVERAGE   PIC Z(3).99 VALUE ZEROS.   
+          02 TOTAL     PIC 999 VALUE ZEROS.            
+          02 RESULT    PIC X(30) VALUE 'FAIL'.         
+ 01 RESP.                                              
+    COPY FBBRESP.                                      
+ 01 WS-COMMAREA PIC XX.                                
+ 01 WS-LENGTH PIC S9(4) COMP VALUE 02.                 
+ 01 AVERAGE PIC 9(3)V99.                               
+ 01 WS-OPTION PIC XX VALUE 'XX'.                       
+ 01 EXITMSG PIC X(10) VALUE 'THANK YOU'.               
+ LINKAGE SECTION.                                      
+ 01 DFHCOMMAREA.                                       
+    02 PRO-STATUS PIC X(02).                           
+ PROCEDURE DIVISION.                                   
+ 0000-MAIN-PARA.                                       
+     IF EIBCALEN=0                                     
+       PERFORM 2000-SENDMAP1                           
+       PERFORM 3000-RETURN                             
+     ELSE                                              
+       IF PRO-STATUS = 'XX' THEN                       
+         EVALUATE EIBAID                                          
+           WHEN DFHENTER                                          
+             PERFORM 4000-RECIEVE1                                
+             IF WS-OPTION='X_' OR WS-OPTION='_X'                  
+             PERFORM 1000-EXIT1                                   
+             END-IF                                               
+             IF WS-OPTION='ME' OR WS-OPTION='RI' OR WS-OPTION='RE'
+             PERFORM 2000-SENDMAP2                                
+             ELSE                                                 
+             MOVE 'INVALID ENTRY' TO TRNG-MSGO OF STUDMNUO        
+             PERFORM 2000-SENDMAP1                                
+             MOVE 'XX' TO WS-OPTION                               
+             END-IF                                               
+             PERFORM 3000-RETURN                                  
+           WHEN DFHPF1                                            
+             MOVE 'ENTER YOUR OPTION AND PRESS ENTER' TO TRNG-MSGO
+                 OF STUDMNUO                                      
+              PERFORM 2000-SENDMAP1                     
+              PERFORM 3000-RETURN                       
+            WHEN DFHPF3                                 
+              PERFORM 1000-EXIT1                        
+          END-EVALUATE                                  
+        ELSE                                            
+          EVALUATE EIBAID                               
+            WHEN DFHENTER                               
+              PERFORM 4000-RECIEVE2                     
+              IF PRO-STATUS='RI'THEN                    
+              PERFORM 2000-READ                         
+              PERFORM 3000-MOVE                         
+              MOVE PRO-STATUS TO WS-OPTION              
+              END-IF                                    
+              IF PRO-STATUS= 'ME' THEN                  
+              PERFORM 6000-COMPUTE                      
+              PERFORM 2000-WRITE                        
+             MOVE PRO-STATUS TO WS-OPTION                         
+             END-IF                                               
+             IF PRO-STATUS= 'RE' THEN                             
+             PERFORM 2000-UPDATE                                  
+             PERFORM 6000-COMPUTE                                 
+             PERFORM 6000-REWRITE                                 
+             MOVE PRO-STATUS TO WS-OPTION                         
+             END-IF                                               
+             PERFORM 2000-SENDMAP2                                
+             PERFORM 3000-RETURN                                  
+           WHEN DFHPF1                                            
+             MOVE 'ENTER THE DETAILS AND PRESS ENTER'TO TRNG-MSG1O
+                 OF STUDMDO                                       
+             PERFORM 2000-SENDMAP2                                
+             PERFORM 3000-RETURN                                  
+           WHEN DFHPF3                                            
+             PERFORM 2000-SENDMAP1                                
+             MOVE 'XX' TO WS-OPTION                     
+             PERFORM 3000-RETURN                        
+         END-EVALUATE                                   
+       END-IF                                           
+     END-IF.                                            
+     GOBACK.                                            
+ 2000-SENDMAP1.                                         
+     EXEC CICS                                          
+       SEND MAP('STUDMNU')                              
+       FROM(STUDMNUO)                                   
+       MAPSET('TRN091S')                                
+       RESP(CICS-RESPONSE)                              
+       ERASE                                            
+     END-EXEC.                                          
+ 2000-SENDMAP2.                                         
+     EXEC CICS                                          
+       SEND MAP('STUDMD')                               
+       FROM(STUDMDO)                                          
+       MAPSET('TRN091S')                                      
+       RESP(CICS-RESPONSE)                                    
+       ERASE                                                  
+     END-EXEC.                                                
+ 4000-RECIEVE1.                                               
+      EXEC CICS                                               
+        RECIEVE MAP('STUDMNU')                                
+        INTO(STUDMNUI)                                        
+        MAPSET('TRN091S')                                     
+        RESP(CICS-RESPONSE)                                   
+      END-EXEC.                                               
+      MOVE TRNG-OPTI OF STUDMNUI TO WS-OPTION.                
+ 4000-RECIEVE2.                                               
+      EXEC CICS                                               
+        RECEIVE MAP('STUDMD')                                 
+        INTO(STUDMDI)                                         
+        MAPSET('TRN091S')                                        
+        RESP(CICS-RESPONSE)                                      
+      END-EXEC.                                                  
+ 6000-COMPUTE.                                                   
+     MOVE TRNG-RNOI TO ROLLNO.                                   
+     MOVE TRNG-NAMEI TO NAMES.                                   
+     MOVE TRNG-M1I TO SUB(1).                                    
+     MOVE TRNG-M2I TO SUB(2).                                    
+     MOVE TRNG-M3I TO SUB(3).                                    
+     MOVE TRNG-M4I TO SUB(4).                                    
+     MOVE TRNG-M5I TO SUB(5).                                    
+     COMPUTE TOTAL = SUB(1) + SUB(2) + SUB(3) + SUB(4) + SUB(5). 
+     COMPUTE AVERAGE=TOTAL/5.                                    
+     MOVE TOTAL TO TRNG-TOTO.                                    
+     MOVE AVERAGE TO EDIT-AVERAGE.                               
+     MOVE EDIT-AVERAGE TO TRNG-AVGO.                             
+     IF SUB(1)<050 OR SUB(2)<050 OR SUB(3)<050 OR SUB(4)<050     
+      OR SUB(5)<050 THEN                                        
+        MOVE 'FAIL' TO TRNG-RESO OF STUDMDO                     
+     ELSE                                                       
+     EVALUATE TRUE                                              
+     WHEN AVERAGE > 050 AND AVERAGE <=060                       
+        MOVE 'PASS WITH THIRD CLASS' TO TRNG-RESO OF STUDMDO    
+        MOVE 'PASS WITH THIRD CLASS' TO RESULT                  
+     WHEN AVERAGE > 060 AND AVERAGE <=065                       
+        MOVE 'PASS WITH SECOND CLASS' TO TRNG-RESO OF STUDMDO   
+        MOVE 'PASS WITH SECOND CLASS' TO RESULT                 
+     WHEN AVERAGE > 066 AND AVERAGE <=085                       
+        MOVE 'PASS WITH FIRST CLASS' TO TRNG-RESO OF STUDMDO    
+        MOVE 'PASS WITH FIRST CLASS' TO RESULT                  
+     WHEN AVERAGE > 086 AND AVERAGE <=100                       
+        MOVE 'PASS WITH CLASS TOPPER' TO TRNG-RESO OF STUDMDO   
+        MOVE 'PASS WITH CLASS TOPPER' TO RESULT                 
+     END-EVALUATE                                               
+     END-IF.                                                  
+ 3000-MOVE.                                                   
+       MOVE ROLLNO TO TRNG-RNOO                               
+       MOVE NAMES TO TRNG-NAMEO                               
+       MOVE SUB(1) TO TRNG-M1O                                
+       MOVE SUB(2) TO TRNG-M2O                                
+       MOVE SUB(3) TO TRNG-M3O                                
+       MOVE SUB(4) TO TRNG-M4O                                
+       MOVE SUB(5) TO TRNG-M5O                                
+       MOVE EDIT-AVERAGE TO TRNG-AVGO                         
+       MOVE TOTAL TO TRNG-TOTO                                
+       MOVE RESULT TO TRNG-RESO OF STUDMDO.                   
+ 3000-RETURN.                                                 
+     EXEC CICS RETURN                                         
+      TRANSID('T114')                                         
+      COMMAREA(WS-OPTION)                                     
+      LENGTH(WS-LENGTH)                                       
+     END-EXEC.                                              
+ 2000-READ.                                                 
+     EXEC CICS                                              
+       READ FILE('TRNFILEA')                                
+       INTO(STUDENT)                                        
+       RIDFLD(TRNG-RNOI)                                    
+       RESP(CICS-RESPONSE)                                  
+     END-EXEC.                                              
+ 2000-WRITE.                                                
+     EXEC CICS                                              
+       WRITE FILE('TRNFILEA')                               
+       FROM(STUDENT)                                        
+       RIDFLD(ROLLNO)                                       
+       RESP(CICS-RESPONSE)                                  
+     END-EXEC.                                              
+ 2000-UPDATE.                                               
+     EXEC CICS                                              
+       READ FILE('TRNFILEA')                              
+       INTO(STUDENT)                                      
+       RIDFLD(TRNG-RNOI)                                  
+       UPDATE                                             
+       RESP(CICS-RESPONSE)                                
+     END-EXEC.                                            
+ 6000-REWRITE.                                            
+     EXEC CICS                                            
+       REWRITE FILE('TRNFILEA')                           
+       FROM(STUDENT)                                      
+       RESP(CICS-RESPONSE)                                
+     END-EXEC.                                            
+ 1000-EXIT1.                                              
+     EXEC CICS                                            
+       SEND FROM(EXITMSG)                                 
+       ERASE                                              
+     END-EXEC.                                            
+    EXEC CICS             
+      RETURN              
+    END-EXEC.             
+********************* Bott
